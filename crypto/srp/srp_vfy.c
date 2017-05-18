@@ -608,6 +608,31 @@ char *SRP_create_verifier(const char *user, const char *pass, char **salt,
         *salt = tmp_salt;
     }
 
+#ifdef OPENSSL_SRP_DEBUG
+    {
+	    char *N_b64 = NULL;
+	    char *g_b64 = NULL;
+	    BIO *bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
+	    N_b64 = OPENSSL_malloc(BN_num_bytes(N_bn) * 2);
+	    g_b64 = OPENSSL_malloc(BN_num_bytes(g_bn) * 2);
+	    if (bio_err == NULL || N_b64 == NULL || g_b64 == NULL) {
+		    OPENSSL_free(N_b64);
+		    OPENSSL_free(g_b64);
+		    BIO_free(bio_err);
+		    goto err;
+	    }
+	    BN_bn2bin(N_bn, tmp);
+	    t_tob64(N_b64, tmp, BN_num_bytes(N_bn));
+	    BN_bn2bin(g_bn, tmp);
+	    t_tob64(g_b64, tmp, BN_num_bytes(g_bn));
+	    BIO_printf(bio_err, "SRP_create_verifier:\n\tgNid = %s\n\tN = %s\n\tg = %s\n\tv = %s\n\tS = %s\n",
+		       defgNid, N_b64, g_b64, vf, *salt);
+	    OPENSSL_free(N_b64);
+	    OPENSSL_free(g_b64);
+	    BIO_free(bio_err);
+    }
+#endif
+
     *verifier = vf;
     vf = NULL;
     result = defgNid;
